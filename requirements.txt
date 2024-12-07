@@ -1,0 +1,17 @@
+matplotlib
+numpy
+opencv-python
+torch
+scikit-learn
+jupyter
+transformers
+tqdm
+torchvision
+pandas
+timm
+wandb
+pytorch-lightning==2.3.0
+Cython==0.29.21
+tensorflow
+cvxopt
+celer
