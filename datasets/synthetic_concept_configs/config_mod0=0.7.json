@@ -1,0 +1,22 @@
+{
+  "train": {
+    "concept_type": "square",
+    "concept_params": {
+      "size": 20,
+      "position": "random",
+      "color": "magenta",
+      "probability": 0.7,
+      "classes": [0]
+    }
+  },
+  "test": {
+    "concept_type": "square",
+    "concept_params": {
+      "size": 20,
+      "position": "random",
+      "color": "magenta",
+      "probability": 1,
+      "classes": [0]
+    }
+  }
+}
