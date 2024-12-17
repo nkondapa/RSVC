@@ -102,7 +102,7 @@ param_key_names = {
     'steps': 'steps=',
     'decomp_method': 'dm=',
     'feature_layer_version': 'flv=',
-    'transform': '', # TODO fix the patchify case (for published version)
+    'transform': '',
      "num_image_repeats": 'nir=',
 }
 

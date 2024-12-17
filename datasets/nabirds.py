@@ -80,8 +80,6 @@ class NABirds(VisionDataset):
         # Load in the class data
         self.class_names = load_class_names(dataset_path)
         self.class_hierarchy = load_hierarchy(dataset_path)
-        # self.num_classes = len(self.class_names)
-        # TODO re-run with corrected num classes
         self.num_classes = len(self.label_map)
 
         self.class_label_map = {v: (k, self.class_names[str(k)]) for k, v in self.label_map.items()}
