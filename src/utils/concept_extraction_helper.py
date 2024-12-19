@@ -32,29 +32,8 @@ def group_images(method, params):
 
     return pred_label_groups
 
-
-def select_class_and_load_images(target_class, label_group, data_root, transform, verbose=True, repeat=1):
-
-    if target_class not in label_group:
-        return None
-    sel_paths = label_group[target_class] * repeat
-    gt_labels = np.array([path.split('/')[-2] for path in sel_paths])
-
-    if verbose:
-        print('Selected class:', target_class, 'Number of images:', len(sel_paths))
-    images_preprocessed = torch.stack([transform(Image.open(os.path.join(data_root, img_path.lstrip('/'))).convert('RGB')) for img_path in sel_paths], 0)
-
-    out = {
-        'image_paths': sel_paths,
-        'gt_labels': gt_labels,
-        'images_preprocessed': images_preprocessed,
-        'num_images': len(sel_paths),
-        'image_size': images_preprocessed.shape[2]
-    }
-    return out
-
-
-def select_class_and_load_images_v2(image_path_list, data_root, transform, return_raw_images=False):
+# TODO delete this function after replacing usages
+def select_class_and_load_images_v2(image_path_list, data_root, transform, return_raw_images=False, num_image_repeats=1):
 
     sel_paths = image_path_list
     gt_labels = np.array([path.split('/')[-2] for path in sel_paths])
@@ -89,7 +68,7 @@ def select_class_and_load_images_v2(image_path_list, data_root, transform, retur
     return out
 
 
-def select_class_and_load_images_v3(image_path_list, data_root, transform, return_raw_images=False, num_repeats=1):
+def select_class_and_load_images(image_path_list, data_root, transform, return_raw_images=False, num_repeats=1):
 
     sel_paths = image_path_list
     gt_labels = np.array([path.split('/')[-2] for path in sel_paths])
@@ -105,15 +84,24 @@ def select_class_and_load_images_v3(image_path_list, data_root, transform, retur
     image_ids = []
     repeated_image_paths = []
     for ii, img_path in enumerate(sel_paths):
-        image = Image.open(os.path.join(data_root, img_path.lstrip('/'))).convert('RGB')
+        if 'data/stanford_cars' in img_path:
+            image = Image.open(img_path).convert('RGB')
+        else:
+            image = Image.open(os.path.join(data_root, img_path.lstrip('/'))).convert('RGB')
+
         if basic_transform:
             base_image = basic_transform(image)
-        for _ in range(num_repeats):
-            if basic_transform:
-                images.append(base_image)
-            transformed_images.append(transform(image))
-            image_ids.append(ii)
+
+        if num_repeats > 1:
+            for _ in range(num_repeats):
+                if basic_transform:
+                    images.append(base_image)
+                transformed_images.append(transform(image))
+                image_ids.append(ii)
             repeated_image_paths.append(img_path)
+        else:
+            transformed_images.append(transform(image))
+
     images = torch.stack(images, 0) if return_raw_images else None
     images_preprocessed = torch.stack(transformed_images, 0)
     image_ids = np.array(image_ids)
