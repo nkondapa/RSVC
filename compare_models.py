@@ -14,7 +14,7 @@ from src.utils.hooks import ActivationHook
 import json
 import os
 from tqdm import tqdm
-from extract_model_activations import create_image_group, _batch_inference
+from extract_model_activations import create_image_group
 from src.utils.parser_helper import build_model_comparison_param_dicts
 from src.utils.model_loader import split_model
 from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
@@ -30,13 +30,7 @@ import random
 from celer import Lasso as CelerLasso
 from sklearn.model_selection import KFold
 from src.utils.funcs import _batch_inference, correlation_comparison, load_concepts, compute_concept_coefficients
-
-
-def build_output_dir(args, comparison_name):
-    path = os.path.join(args.comparison_output_root, 'outputs/data/concept_comparison', comparison_name)
-    os.makedirs(path, exist_ok=True)
-    return path
-
+from src.utils.saving import build_output_dir
 
 def standardize(X, mean=None, std=None):
     if mean is not None:
@@ -55,14 +49,8 @@ def unstandardize(X, mean, std):
 
     return X * std + mean
 
-# @ TODO clean up print statements
 @ignore_warnings(category=ConstantInputWarning)
 def regression_comparison(method_name, params, activations1, activations2, U1, U2):
-    '''
-    This test measures the ability of the network to decode the concept coefficients from the activation vector
-    The test measures activations1 * x11 = U1, activations2 * x22 = U2, activations1 * x12 = U2, activations2 * x21 = U1
-    :return:
-    '''
 
     if method_name == 'linear_regression':
         method = LinearRegression
@@ -117,8 +105,6 @@ def regression_comparison(method_name, params, activations1, activations2, U1, U
 
     outs = {}
     for k, (train_indices, test_indices) in enumerate(splits):
-        # print(f'Fold {k}')
-        # split data train and test
         train_act1 = activations1[train_indices]
         test_act1 = activations1[test_indices]
         train_act2 = activations2[train_indices]
@@ -198,176 +184,11 @@ def regression_comparison(method_name, params, activations1, activations2, U1, U
             'lr2to1_pearson': lr2to1_pearson,
             'lr2to2_pearson': lr2to2_pearson,
         }
-        print()
-        print(lr1to2_score)
-        print(lr2to1_score)
-        s1 = ''
-        s2 = ''
-        if U1 is not None:
-            s1 += f'U1: {lr1to1_score.mean()}, {lr2to1_score.mean()}'
-            s2 += f'U1: {lr1to1_pearson.mean()}, {lr2to1_pearson.mean()}'
-        if U2 is not None:
-            s1 += f'  U2: {lr1to2_score.mean()}, {lr2to2_score.mean()}'
-            s2 += f'  U2: {lr1to2_pearson.mean()}, {lr2to2_pearson.mean()}'
-        print(s1)
-        print(s2)
-        print()
 
     if len(outs) == 1:
         return outs[0]
     else:
         return outs
-
-
-@ignore_warnings(category=ConstantInputWarning)
-def concept_regression_comparison(method_name, params, U1, U2):
-    '''
-    This test measures the ability of the network to decode the concept coefficients from the activation vector
-    The test measures activations1 * x11 = U1, activations2 * x22 = U2, activations1 * x12 = U2, activations2 * x21 = U1
-    :return:
-    '''
-
-    if method_name == 'concept_linear_regression':
-        method = LinearRegression
-    elif method_name == 'concept_ridge_regression':
-        method = Ridge
-    elif method_name == 'concept_lasso_regression':
-        method = Lasso
-    elif method_name == 'concept_lasso_regression_c':
-        method = CelerLasso
-    elif method_name == 'concept_elastic_net':
-        method = ElasticNet
-    elif method_name == 'concept_k_nearest_neighbors':
-        method = KNeighborsRegressor
-    elif method_name == 'concept_radius_neighbors':
-        method = RadiusNeighborsRegressor
-    else:
-        raise ValueError(f'Unknown regression method: {method_name}')
-
-
-    U1_mean, U1_std = None, None
-    U2_mean, U2_std = None, None
-    if params.get('standardize_targets', False):
-        U1, U1_mean, U1_std = standardize(U1)
-        U2, U2_mean, U2_std = standardize(U2)
-
-    rng = np.random.default_rng(params['seed'])
-    if params['regression_train_pct'] is not None:
-        indices = np.arange(U1.shape[0])
-        num_train = params['num_train']
-        train_indices = indices[:num_train]
-        test_indices = indices[num_train:]
-        splits = [(train_indices, test_indices)]
-    elif params['num_folds'] is not None:
-        splits = []
-        for i in range(len(params['num_folds']['train_indices'])):
-            train_inds = params['num_folds']['train_indices'][i]
-            test_inds = params['num_folds']['test_indices'][i]
-            rng.shuffle(train_inds)
-            splits.append([train_inds, test_inds])
-    else:
-        raise ValueError('Must specify either regression_train_pct or num_folds')
-
-    method_params = params['regression_params']
-
-    outs = {}
-    for k, (train_indices, test_indices) in enumerate(splits):
-
-        train_U1 = U1[train_indices]
-        train_U2 = U2[train_indices]
-        test_U1 = U1[test_indices]
-        test_U2 = U2[test_indices]
-
-        lr1to1 = method(**method_params)
-        lr1to2 = method(**method_params)
-        lr2to1 = method(**method_params)
-        lr2to2 = method(**method_params)
-
-        lr1to1.fit(train_U1, train_U1)
-        lr1to2.fit(train_U1, train_U2)
-        lr2to1.fit(train_U2, train_U1)
-        lr2to2.fit(train_U2, train_U2)
-
-        # train_pred_A1U1 = lr1to1.predict(train_U1)
-        # train_pred_A1U2 = lr1to2.predict(train_U1)
-        # train_pred_A2U2 = lr2to2.predict(train_U2)
-        # train_pred_A2U1 = lr2to1.predict(train_U2)
-
-        pred_A1U1 = lr1to1.predict(test_U1)
-        pred_A1U2 = lr1to2.predict(test_U1)
-        pred_A2U2 = lr2to2.predict(test_U2)
-        pred_A2U1 = lr2to1.predict(test_U2)
-
-        # pearson correlation
-        lr1to1_pearson = np.array([pearsonr(test_U1[:, i], pred_A1U1[:, i]).statistic for i in range(U1.shape[1])])
-        lr1to2_pearson = np.array([pearsonr(test_U2[:, i], pred_A1U2[:, i]).statistic for i in range(U2.shape[1])])
-        lr2to1_pearson = np.array([pearsonr(test_U1[:, i], pred_A2U1[:, i]).statistic for i in range(U1.shape[1])])
-        lr2to2_pearson = np.array([pearsonr(test_U2[:, i], pred_A2U2[:, i]).statistic for i in range(U2.shape[1])])
-
-        # train_lr1to1_pearson = np.array([pearsonr(train_U1[:, i], train_pred_A1U1[:, i]).statistic for i in range(U1.shape[1])])
-        # train_lr1to2_pearson = np.array([pearsonr(train_U2[:, i], train_pred_A1U2[:, i]).statistic for i in range(U2.shape[1])])
-        # train_lr2to1_pearson = np.array([pearsonr(train_U1[:, i], train_pred_A2U1[:, i]).statistic for i in range(U1.shape[1])])
-        # train_lr2to2_pearson = np.array([pearsonr(train_U2[:, i], train_pred_A2U2[:, i]).statistic for i in range(U2.shape[1])])
-
-        # score
-        lr1to1_score = r2_score(test_U1, pred_A1U1, multioutput='raw_values')
-        lr1to2_score = r2_score(test_U2, pred_A1U2, multioutput='raw_values')
-        lr2to1_score = r2_score(test_U1, pred_A2U1, multioutput='raw_values')
-        lr2to2_score = r2_score(test_U2, pred_A2U2, multioutput='raw_values')
-
-        # train_lr1to1_score = r2_score(train_U1, train_pred_A1U1, multioutput='raw_values')
-        # train_lr1to2_score = r2_score(train_U2, train_pred_A1U2, multioutput='raw_values')
-        # train_lr2to1_score = r2_score(train_U1, train_pred_A2U1, multioutput='raw_values')
-        # train_lr2to2_score = r2_score(train_U2, train_pred_A2U2, multioutput='raw_values')
-        #
-
-        # print()
-        # print(lr1to2_score)
-        # print(lr2to1_score)
-        # print(lr1to1_score.mean(), lr2to1_score.mean(), lr2to2_score.mean(), lr1to2_score.mean())
-        # print(lr1to1_pearson.mean(), lr2to1_pearson.mean(), lr2to2_pearson.mean(), lr1to2_pearson.mean())
-        # print()
-
-        nc_i = U1.shape[1]
-        nc_j = U2.shape[1]
-        outs[k] = {
-            'U1_mean': U1_mean,
-            'U1_std': U1_std,
-            'U2_mean': U2_mean,
-            'U2_std': U2_std,
-
-            'lr1to1': lr1to1,
-            'lr1to2': lr1to2,
-            'lr2to1': lr2to1,
-            'lr2to2': lr2to2,
-            'metadata': {'method': method_name, 'num_concepts_i': nc_i, 'num_concepts_j': nc_j},
-
-            # 'train_lr1to1_score': train_lr1to1_score,
-            # 'train_lr1to2_score': train_lr1to2_score,
-            # 'train_lr2to1_score': train_lr2to1_score,
-            # 'train_lr2to2_score': train_lr2to2_score,
-            'lr1to1_score': lr1to1_score,
-            'lr1to2_score': lr1to2_score,
-            'lr2to1_score': lr2to1_score,
-            'lr2to2_score': lr2to2_score,
-
-            # 'train_lr1to1_pearson': train_lr1to1_pearson,
-            # 'train_lr1to2_pearson': train_lr1to2_pearson,
-            # 'train_lr2to1_pearson': train_lr2to1_pearson,
-            # 'train_lr2to2_pearson': train_lr2to2_pearson,
-
-            'lr1to1_pearson': lr1to1_pearson,
-            'lr1to2_pearson': lr1to2_pearson,
-            'lr2to1_pearson': lr2to1_pearson,
-            'lr2to2_pearson': lr2to2_pearson,
-        }
-
-    if len(outs) == 1:
-        return outs[0]
-    else:
-        return outs
-
-
 
 def create_method_folder_name(method, method_dict):
 
@@ -385,17 +206,8 @@ def compare_model_concepts(methods_list, activations1, activations2, U1, U2):
         if method in ['pearson', 'spearman']:
             out = correlation_comparison(method, U1, U2)
         elif method in ['linear_regression', 'ridge_regression', 'lasso_regression', 'lasso_regression_c', 'elastic_net', 'k_nearest_neighbors', 'radius_neighbors']:
-            # method_dict['regression_train_pct'] = train_pct
-            # method_dict['seed'] = seed
             if U1 is not None or U2 is not None:
                 out = regression_comparison(method, method_dict, activations1, activations2, U1, U2)
-            else:
-                out = None
-        elif method in ['concept_linear_regression', 'concept_ridge_regression', 'concept_lasso_regression', 'concept_lasso_regression_c', 'concept_elastic_net', 'concept_k_nearest_neighbors', 'concept_radius_neighbors']:
-            # method_dict['regression_train_pct'] = train_pct
-            # method_dict['seed'] = seed
-            if U1 is not None and U2 is not None:
-                out = concept_regression_comparison(method, method_dict, U1, U2)
             else:
                 out = None
         else:
@@ -452,17 +264,10 @@ def process_config(config, outdir):
         method = method_dict['method']
         if method in ['pearson', 'spearman']:
             folder_name = create_method_folder_name(method, method_dict)
-        elif method in ['linear_regression', 'ridge_regression', 'lasso_regression', 'lasso_regression_c','elastic_net', 'k_nearest_neighbors', 'radius_neighbors']:
+        elif method in ['linear_regression', 'ridge_regression', 'lasso_regression', 'lasso_regression_c', 'elastic_net', 'k_nearest_neighbors', 'radius_neighbors']:
             method_dict['regression_train_pct'] = train_pct
             method_dict['num_folds'] = num_folds
             method_dict['seed'] = seed
-            folder_name = create_method_folder_name(method, method_dict)
-        elif method in ['concept_linear_regression', 'concept_ridge_regression', 'concept_lasso_regression', 'concept_lasso_regression_c', 'concept_elastic_net', 'concept_k_nearest_neighbors', 'concept_radius_neighbors']:
-            method_dict['regression_train_pct'] = train_pct
-            method_dict['num_folds'] = num_folds
-            method_dict['seed'] = seed
-            folder_name = create_method_folder_name(method, method_dict)
-        elif method in ['clip']:
             folder_name = create_method_folder_name(method, method_dict)
         else:
             raise ValueError(f'Unknown method: {method}')
@@ -601,21 +406,8 @@ def shared_concept_proposals_inference(params):
             print(f'Scaling number of repeats to match number of available images -- {class_idx}')
             num_image_repeats = target_num_samples // len(image_group[class_idx])
 
-        train_indices = None
-        test_indices = None
-        # split data into train and test using a percentage
-        if regression_train_pct is not None and num_folds is None:
-            train_image_list, test_image_list = split_image_group(image_group[class_idx], regression_train_pct)
-            # repeat images (for different random crops)
-            train_image_list = train_image_list * num_image_repeats
-            test_image_list = test_image_list * num_image_repeats
-            image_list = train_image_list + test_image_list
-            num_train = len(train_image_list)
-            num_test = len(test_image_list)
-        # split data into equal folds and use each fold as a test set (train multiple regression models)
-        else:
-            image_list, train_indices, test_indices = k_fold_split_image_group(image_group[class_idx], num_folds,
-                                                                               num_image_repeats)
+        image_list, train_indices, test_indices = k_fold_split_image_group(image_group[class_idx], num_folds,
+                                                                           num_image_repeats)
 
     for mi in range(len(fe_outs)):
         transform = transforms[mi]
@@ -632,11 +424,7 @@ def shared_concept_proposals_inference(params):
 
     # update config with train test information
     for comparison_method in comparison_methods:
-        if comparison_method.get('regression_train_pct', None) is not None:
-            comparison_method['num_train'] = num_train
-            comparison_method['num_test'] = num_test
-        elif comparison_method.get('num_folds', None) is not None:
-            comparison_method['num_folds'] = {'train_indices': train_indices, 'test_indices': test_indices}
+        comparison_method['num_folds'] = {'train_indices': train_indices, 'test_indices': test_indices}
 
 
 def _process_coeff_for_layer(concept_folder, layer, class_idx, activations):
@@ -678,7 +466,7 @@ def main():
     patch_size = config.get('patch_size', None)
     move_to_cpu_every = config.get('move_to_cpu_every', None)
 
-    output_dir = build_output_dir(args, comparison_name)
+    output_dir = build_output_dir(args.comparison_output_root, 'concept_comparison', comparison_name)
     data_group_name, method_output_folders = process_config(config, output_dir)
     comparison_methods_tmp = []
     for mi, m_folder in enumerate(method_output_folders):
@@ -815,30 +603,8 @@ def main():
         for mi in range(len(fe_outs)):
             act_hooks[mi].reset_activation_dict()
 
+
 if __name__ == '__main__':
     from multiprocessing import set_start_method
     set_start_method("spawn")
     main()
-
-'''
-1) Convert params to names
-- image selection params (num images, transform type, num repeats, dataset)
-- method params -> name
-    - pearson
-    - spearman
-    - regression params -> name
-        - regression type, penalty amount, standardize, standardize targets, train pct, seed
-- add comparison map helper to ceh + saving
-    - input should be config -> stringified (through prev steps) -> name
-    - name should call back abbr comparison name
-    - return comparison name
-    - given a comparison name -> should return the full names for all of the parts
-    - parts include:
-        model1 concept name
-        model2 concept name
-        comparison image selection name
-        method_i name
-
-        
-
-'''

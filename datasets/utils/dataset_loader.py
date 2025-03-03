@@ -1,10 +1,6 @@
 import torch.utils.data
 import torchvision
 from torch.utils.data import DataLoader
-from datasets.concept_crop_embeddings import ConceptCropEmbeddingsDataset
-from datasets.concept_crop_collage_embeddings import ConceptCollageEmbeddingsDataset
-from datasets.topk_concept_crop_collage_topk_embeddings import TopKConceptCollageEmbeddingsDataset
-from datasets.binary_concept_classifier_dataset import BinaryConceptClassifierDataset
 from datasets.utils.build_transform import get_transform
 from datasets.nabirds import NABirds
 from datasets.nabirds_stanford_cars import NABirdsStanfordCars

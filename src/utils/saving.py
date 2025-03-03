@@ -1,4 +1,4 @@
-
+import os
 
 model_names = {
     'vit_small_patch16_224.augreg_in21k_ft_in1k': 'vit_s',
@@ -213,3 +213,9 @@ def convert_params(run_params):
             raise ValueError(f'Unknown key {key}')
 
     return name[:-1]
+
+
+def build_output_dir(output_root, folder_name, comparison_name):
+    path = os.path.join(output_root, f'outputs/data/{folder_name}', comparison_name)
+    os.makedirs(path, exist_ok=True)
+    return path

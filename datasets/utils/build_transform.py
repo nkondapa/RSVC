@@ -16,23 +16,6 @@ def get_transform(params):
 
         return dict(transform=transform, test_transform=test_transform, preprocessing=preprocessing)
 
-    if dataset_name == 'binary_concept_dataset':
-        crop_size = params['crop_size']
-        transform = T.Compose([
-            T.RandomResizedCrop(crop_size),
-            T.RandomHorizontalFlip(),
-            T.ToTensor(),
-            T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        ])
-        test_transform = T.Compose([
-            T.Resize((crop_size, crop_size)),
-            T.ToTensor(),
-            T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        ])
-        preprocessing = None
-
-        return dict(transform=transform, test_transform=test_transform, preprocessing=preprocessing)
-
     if dataset_name == 'nabirds' or dataset_name == 'stanford_cars' or dataset_name == 'nabirds_stanford_cars':
         transform = T.Compose([
             T.RandomResizedCrop(224),

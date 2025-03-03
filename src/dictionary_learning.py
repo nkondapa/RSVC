@@ -197,23 +197,7 @@ class DictionaryLearner:
         elif method == 'fnnls':
             absolute_max_iters = params.get('absolute_max_iters', 200)
             skip_err_comp = params.get('skip_err_comp', False)
-            # st = time.time()
             U = np.stack([fnnls.fnnls(W.T, X[i], absolute_max_iters=absolute_max_iters)[0] for i in range(X.shape[0])])
-            # print(f'No mp Elapsed time: {time.time() - st:.2f} seconds.')
-            # st = time.time()
-            # args = [(W.T, X[i], absolute_max_iters) for i in range(X.shape[0])]
-            # with multiprocessing.get_context('spawn').Pool(8) as pool:
-            #     u_stack = pool.starmap(DictionaryLearner.fnnls_wrapper, args)
-            # U = np.stack(u_stack)
-            # print(f'MP Elapsed time: {time.time() - st:.2f} seconds.')
-
-            # u_stack = []
-            # for i in range(X.shape[0]):
-            #     st = time.time()
-            #     u = fnnls.fnnls(W.T, X[i], absolute_max_iters=absolute_max_iters)[0]
-            #     print(f'Elapsed time: {time.time() - st:.2f} seconds.')
-            #     u_stack.append(u)
-
             if not skip_err_comp:
                 err = np.linalg.norm(X - U @ W)
             else:
