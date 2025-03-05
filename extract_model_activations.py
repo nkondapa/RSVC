@@ -60,15 +60,10 @@ def create_image_group(strategy, param_dicts, return_eval_dict=False):
             split = dataset_params['split']
             model_name, ckpt_path = pd['model']
             model_eval_path = f'model_evaluation/{dataset}/{model_name}_{split}.json'
-            try:
-                with open(model_eval_path, 'r') as f:
-                    _eval_dict = json.load(f)
-                    predictions = _eval_dict['predictions']
-                    eval_dict.append(_eval_dict)
-            except FileNotFoundError:
-                _eval_dict = eval_model.main(model_name, dataset, split, ckpt_path, data_root='./data')
-                predictions = _eval_dict['predictions']
-                eval_dict.append(_eval_dict)
+            _eval_dict = eval_model.load_or_run_evaluation(model_eval_path, dataset, split,
+                                                           model_name, ckpt_path, data_root='./data')
+            eval_dict.append(_eval_dict)
+            predictions = _eval_dict['predictions']
 
             # load images
             print('Loading images')

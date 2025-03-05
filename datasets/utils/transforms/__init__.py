@@ -1,2 +1,1 @@
-from .diffusion_noise import DiffusionNoise
-from .random_lowpass import RandomLowPass
+from .paste_object_transform import ModifierPaste

@@ -13,6 +13,13 @@ import json
 from src.utils.model_loader import load_model
 from datasets.utils.dataset_loader import get_dataset
 
+def load_or_run_evaluation(eval_path, dataset, split, model_name, ckpt_path, data_root='./data'):
+    try:
+        with open(eval_path, 'r') as f:
+            out = json.load(f)
+    except FileNotFoundError:
+        out = main(model_name, dataset, split, ckpt_path, data_root=data_root)
+    return out
 
 def eval_model(model, dataloader, device, criterion, out_transform=None):
     model.eval()

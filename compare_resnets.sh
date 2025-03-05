@@ -19,6 +19,10 @@ python concept_integrated_gradients.py --comparison_config ./comparison_configs/
 --model_0 resnet18.a2_in1k --model_1 resnet50.a2_in1k \
 --concept_root_folder_0 /media/nkondapa/SSD2/concept_book/ --concept_root_folder_1 /media/nkondapa/SSD2/concept_book/
 
-python visualize_replacement_test_v2.py --comparison_config ./comparison_configs/r18_flv=v1_vs_r50_flv=v1-nmf=10_seed=0.json \
+python replacement_test.py --comparison_config ./comparison_configs/r18_flv=v1_vs_r50_flv=v1-nmf=10_seed=0.json \
+--start_class_idx 0 --end_class_idx 5 \
+--concept_root_folder_0 /media/nkondapa/SSD2/concept_book/ --concept_root_folder_1 /media/nkondapa/SSD2/concept_book/
+
+python visualize_similarity_vs_importance.py --comparison_config ./comparison_configs/r18_flv=v1_vs_r50_flv=v1-nmf=10_seed=0.json \
 --start_class_idx 0 --end_class_idx 5 \
 --concept_root_folder_0 /media/nkondapa/SSD2/concept_book/ --concept_root_folder_1 /media/nkondapa/SSD2/concept_book/

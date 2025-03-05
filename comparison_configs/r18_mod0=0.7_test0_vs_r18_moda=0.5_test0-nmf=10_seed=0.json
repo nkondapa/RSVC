@@ -1,0 +1,21 @@
+{
+  "comparison_name": "nab_r18_mod0=0.7_test0_vs_r18_moda=0.5_test0-nmf=10_seed=0",
+  "dataset": "nabirds_modified",
+  "num_images": 200,
+  "num_image_repeats": 1,
+  "transform_type": "test",
+  "seed": 42,
+  "num_folds": 5,
+  "only_last_layer": true,
+  "patchify": true,
+  "patch_size": 64,
+
+  "methods": [
+    {"method": "pearson"},
+    {
+      "method": "lasso_regression_c",
+      "standardize": true, "standardize_targets": true,
+      "regression_params": {"alpha": 0.1}
+    }
+  ]
+}
