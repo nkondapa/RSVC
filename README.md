@@ -34,8 +34,8 @@ data/
 ## Usage
 ### Toy Concept Comparison
 To run the toy concept comparison experiment, make sure the nabirds dataset is downloaded.
-You can download the custom trained models from [$M_{ps}$](https://drive.google.com/drive/folders/1oG6uHMPahBYVc-AtqVYSZyWAvq8u74zw?usp=drive_link) and
-[$M_{nc}$](https://drive.google.com/drive/folders/1LPXUh_Q3J9CCAg__o-T3RAcoVAAQ8ZRe?usp=drive_link).
+You can download the custom trained models from [M_ps](https://drive.google.com/drive/folders/1oG6uHMPahBYVc-AtqVYSZyWAvq8u74zw?usp=drive_link) and
+[M_nc](https://drive.google.com/drive/folders/1LPXUh_Q3J9CCAg__o-T3RAcoVAAQ8ZRe?usp=drive_link).
 
 ```bash toy_concept_experiment.sh```
 
