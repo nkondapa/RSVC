@@ -1,48 +1,26 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from math import ceil
-
-from IPython.core.pylabtools import figsize
-
-from wandb import sklearn
-
-from src.utils.parser_helper import concept_comparison_parser
 from src.utils import saving, model_loader, concept_extraction_helper as ceh
 from src.utils.hooks import ActivationHook
 import json
 import os
 from tqdm import tqdm
-from src.dictionary_learning import DictionaryLearner
-from extract_model_activations import build_param_dicts
-from sklearn.utils._testing import ignore_warnings
-from scipy.stats._warnings_errors import ConstantInputWarning, NearConstantInputWarning
+
 import copy
-from argparse import Namespace
 from extract_model_activations import create_image_group, _batch_inference
 import pickle as pkl
-from src.dictionary_learning import DictionaryLearner
 from src.utils.parser_helper import build_model_comparison_param_dicts
 from src.utils.funcs import _batch_inference, correlation_comparison, load_concepts, compute_concept_coefficients
 from scipy.stats import pearsonr, spearmanr, rankdata
-from concept_integrated_gradients import build_output_dir as build_importance_output_dir
 from compare_models import build_model_comparison_parser, set_seed, build_output_dir, process_config
 import torchvision
-from src.utils import plotting_helper as ph
-from scipy.stats import gaussian_kde
-from src.utils.plotting_helper import plot_names
-# from visualize_topk_concept_images import load_activations, load_concepts
-import matplotlib.gridspec as gridspec
 from PIL import Image, ImageOps
-from einops import rearrange
 from compare_models import standardize, unstandardize
-from src.utils.custom_transforms import ModifiedRandomResizedCrop
-from matplotlib.backends.backend_pdf import PdfPages
 from data.imagenet.imagenet_classes import imagenet_classes
 from data.nabirds.classname_to_label import nabirds_classes
 from src.utils.model_loader import split_model
 import torch.nn.functional as F
-import sklearn
 from src import eval_model
 
 

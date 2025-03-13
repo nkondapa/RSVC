@@ -1,13 +1,6 @@
-import matplotlib.pyplot as plt
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
 import numpy as np
-import os
 import tqdm
 import torch
-from math import ceil
 from src.utils.parser_helper import concept_comparison_parser
 from src.utils import saving, model_loader, concept_extraction_helper as ceh
 from src.utils.hooks import ActivationHook
@@ -16,7 +9,6 @@ import os
 from tqdm import tqdm
 from extract_model_activations import create_image_group
 from src.utils.parser_helper import build_model_comparison_param_dicts
-from src.utils.model_loader import split_model
 from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
 from sklearn.neighbors import KNeighborsRegressor, RadiusNeighborsRegressor
 from sklearn.metrics import r2_score, mean_squared_error, explained_variance_score
