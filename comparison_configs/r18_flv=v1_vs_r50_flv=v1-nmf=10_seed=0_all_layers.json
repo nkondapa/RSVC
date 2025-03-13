@@ -1,0 +1,16 @@
+{
+  "comparison_name": "r18_flv=v1_vs_r50_flv=v1-nmf=10_seed=0",
+  "dataset": "imagenet",
+  "num_images": 200,
+  "num_image_repeats": 1,
+  "transform_type": "test",
+  "seed": 42,
+  "num_folds": 5,
+  "only_last_layer": false,
+  "patchify": true,
+  "patch_size": 64,
+
+  "methods": [
+    {"method": "pearson"}
+  ]
+}
