@@ -47,5 +47,4 @@ These models should automatically download from the timm library.
 
 ## TODO
 - [ ] Add qualitative visualization code to resnet comparisons
-- [ ] Add layerwise comparison visualizations
 - [ ] Add remaining comparison experiments
