@@ -48,3 +48,14 @@ These models should automatically download from the timm library.
 ## TODO
 - [ ] Add qualitative visualization code to resnet comparisons
 - [ ] Add remaining comparison experiments
+
+
+# Citation
+```
+@inproceedings{kondapaneni2025representational,
+  title={Representational Similarity via Interpretable Visual Concepts},
+  author={Kondapaneni, Neehar and Mac Aodha, Oisin and Perona, Pietro},
+  journal={The Thirteenth International Conference on Learning Representations},
+  year={2025}
+}
+```
