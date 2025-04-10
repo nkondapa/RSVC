@@ -1,5 +1,6 @@
 # Representational Similarity via Interpretable Visual Concepts (RSVC)
 
+[![Project Page](https://img.shields.io/badge/Project%20Page-Link)](https://nkondapa.github.io/rsvc-page/)
 [![OpenReview](https://img.shields.io/badge/OpenReview-a61717)](https://openreview.net/forum?id=ih3BJmIZbC)
 [![Paper](https://img.shields.io/badge/arXiv-PDF-b31b1b)]([https://arxiv.org/abs/2310.00031](https://arxiv.org/pdf/2503.15699))
 
